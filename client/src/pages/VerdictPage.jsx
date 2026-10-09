@@ -119,7 +119,7 @@ Tracked with Day 90.`;
 
   return (
     <div className="verdict-page">
-      <div className="container">
+      <div className="page-content">
         {/* Header */}
         <header className="verdict-header">
           <span className="badge badge--neutral">Objective Assessment</span>
@@ -172,13 +172,13 @@ Tracked with Day 90.`;
         <section className="section" style={{ marginTop: 'var(--space-6)' }}>
           <h2 className="section-title">Value & Consistency Breakdown</h2>
           <div className="grid grid--3 stats-grid" style={{ marginTop: 'var(--space-3)' }}>
-            <div className="card">
+            <div className="card stat-card">
               <span className="stat-label">Total Days Logged</span>
               <span className="stat-value">{summary.daysUsed || 0}</span>
               <span className="stat-sub">out of {summary.daysElapsed || 0} days</span>
             </div>
 
-            <div className="card">
+            <div className="card stat-card">
               <span className="stat-label">Rating Shift</span>
               <span className="stat-value">
                 {summary.ratingChange != null
@@ -191,7 +191,7 @@ Tracked with Day 90.`;
               </span>
             </div>
 
-            <div className="card">
+            <div className="card stat-card">
               <span className="stat-label">Total Invested</span>
               <span className="stat-value">
                 {summary.totalSpent != null ? `₹${summary.totalSpent}` : '—'}

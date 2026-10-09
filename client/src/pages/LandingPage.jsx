@@ -20,18 +20,26 @@ const QUOTES = [
 ];
 
 export default function LandingPage() {
-  const navigate   = useNavigate();
-  const { login }  = useAuth();
+  const navigate = useNavigate();
+  const { user, login, logout, isDemo } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState('');
+
+  const handleStart = () => {
+    if (user && !isDemo) {
+      navigate('/dashboard');
+    } else {
+      navigate('/signup');
+    }
+  };
 
   const handleDemo = async () => {
     setLoading(true);
     setError('');
     try {
       const res = await authAPI.demo();
-      const { token, user } = res.data;
-      login(token, user);
+      const { token, user: demoUser } = res.data;
+      login(token, demoUser);
       navigate('/dashboard');
     } catch {
       setError('Demo unavailable right now. Try again in a moment.');
@@ -49,9 +57,43 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          onClick={() => navigate('/')}
+          style={{ cursor: 'pointer' }}
         >
           Day 90
         </motion.div>
+
+        <div className="landing__nav-actions">
+          {user && !isDemo ? (
+            <div className="row row--gap-2" style={{ alignItems: 'center' }}>
+              <span className="text-sm text-muted" style={{ display: 'none' }}>{user.name}</span>
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => navigate('/dashboard')}
+              >
+                Go to Dashboard →
+              </button>
+            </div>
+          ) : (
+            <div className="row row--gap-2" style={{ alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => navigate('/login')}
+              >
+                Log In
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={() => navigate('/signup')}
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Hero */}
@@ -82,10 +124,10 @@ export default function LandingPage() {
           >
             <button
               className="btn btn--primary btn--full"
-              onClick={() => navigate('/signup')}
+              onClick={handleStart}
               id="cta-start"
             >
-              Start my Day 1
+              {user && !isDemo ? 'Go to Dashboard' : 'Start my Day 1'}
             </button>
             <button
               className="btn btn--outline btn--full"
@@ -102,6 +144,18 @@ export default function LandingPage() {
             </button>
             {error && <p className="form-error">{error}</p>}
           </motion.div>
+
+          <div style={{ textAlign: 'center', marginTop: 'var(--space-2)' }}>
+            <span className="text-sm text-muted">Already registered? </span>
+            <button
+              type="button"
+              className="link-btn text-sm"
+              style={{ fontWeight: 600, color: 'var(--forest)', textDecoration: 'underline' }}
+              onClick={() => navigate('/login')}
+            >
+              Log in to your routine →
+            </button>
+          </div>
 
           {/* 90-day strip illustration */}
           <motion.div
@@ -200,16 +254,18 @@ export default function LandingPage() {
             No push notifications. No subscription. No medical claims.
             Just an honest log of whether you showed up.
           </p>
-          <button className="btn btn--primary btn--full" onClick={() => navigate('/signup')}>
-            Start my Day 1
-          </button>
-          <button
-            className="btn btn--ghost btn--full"
-            style={{ marginTop: '12px' }}
-            onClick={() => navigate('/login')}
-          >
-            I already have an account
-          </button>
+          <div className="row row--center row--gap-3" style={{ flexWrap: 'wrap' }}>
+            <button className="btn btn--primary" onClick={handleStart} style={{ minWidth: '200px' }}>
+              {user && !isDemo ? 'Go to Dashboard' : 'Start my Day 1 (Sign Up)'}
+            </button>
+            <button
+              className="btn btn--secondary"
+              style={{ minWidth: '200px' }}
+              onClick={() => navigate('/login')}
+            >
+              Log In to Routine
+            </button>
+          </div>
         </section>
       </main>
 
@@ -351,6 +407,30 @@ export default function LandingPage() {
           display: flex;
           gap: var(--space-4);
           align-items: flex-start;
+        }
+
+        @media (min-width: 640px) {
+          .landing__cta-group {
+            flex-direction: row;
+          }
+          .landing__cta-group .btn {
+            flex: 1;
+          }
+          .landing__quotes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          }
+          .landing__steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .landing {
+            max-width: 860px;
+            padding-top: var(--space-8);
+          }
         }
 
         .landing__step-num {

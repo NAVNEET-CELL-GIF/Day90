@@ -82,6 +82,7 @@ router.get('/current', async (req, res, next) => {
       routine,
       stats: {
         ...adherenceData,
+        daysMissed: Math.max(0, adherenceData.daysElapsed - adherenceData.daysUsed),
         weeksElapsed,
         trend,
         ...verdictResult,
@@ -305,6 +306,7 @@ router.get('/:id/summary', async (req, res, next) => {
       summary: {
         daysElapsed: adherenceData.daysElapsed,
         daysUsed: adherenceData.daysUsed,
+        daysMissed: Math.max(0, adherenceData.daysElapsed - adherenceData.daysUsed),
         adherence: Math.round(adherenceData.adherence * 100),
         firstRating,
         lastRating,

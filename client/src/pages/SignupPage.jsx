@@ -21,7 +21,7 @@ function EyeIcon({ open }) {
 
 export default function SignupPage() {
   const navigate  = useNavigate();
-  const { login } = useAuth();
+  const { login, isDemo } = useAuth();
 
   const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
@@ -88,6 +88,12 @@ export default function SignupPage() {
             Give your wellness routine an honest, scientifically grounded chance.
           </p>
         </div>
+
+        {isDemo && (
+          <div className="alert alert--info" style={{ marginBottom: 'var(--space-4)' }}>
+            <span>👋 You were viewing the demo. Enter your details below to start your personal 90-day tracker from Day 1.</span>
+          </div>
+        )}
 
         {error && (
           <div className="alert alert--danger" role="alert" style={{ marginBottom: 'var(--space-4)' }}>

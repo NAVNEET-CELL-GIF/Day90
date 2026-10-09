@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { routineAPI, timelineAPI } from '../api/client';
@@ -51,7 +51,7 @@ export default function TimelinePage() {
 
   return (
     <div className="timeline-page">
-      <div className="container">
+      <div className="page-content">
         <header className="timeline-header">
           <span className="badge badge--neutral">Science-Grounded Roadmap</span>
           <h1 className="h1" style={{ marginTop: 'var(--space-2)' }}>

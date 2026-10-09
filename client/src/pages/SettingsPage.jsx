@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { routineAPI, accountAPI } from '../api/client';
@@ -90,7 +90,7 @@ export default function SettingsPage() {
 
   return (
     <div className="settings-page">
-      <div className="container">
+      <div className="page-content">
         <header className="settings-header">
           <span className="badge badge--neutral">Preferences & Account</span>
           <h1 className="h1" style={{ marginTop: 'var(--space-2)' }}>

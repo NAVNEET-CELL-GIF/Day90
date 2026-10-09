@@ -65,9 +65,10 @@ export default function DayStrip({ days, currentDay }) {
 
       <div className="day-strip__legend">
         <span className="day-strip__legend-item day-strip__legend-item--done">Used</span>
-        <span className="day-strip__legend-item day-strip__legend-item--missed">Missed</span>
         <span className="day-strip__legend-item day-strip__legend-item--today">Today</span>
+        <span className="day-strip__legend-item day-strip__legend-item--missed">Missed</span>
         <span className="day-strip__legend-item day-strip__legend-item--future">Upcoming</span>
+        <span className="day-strip__legend-item day-strip__legend-item--milestone">Milestones (W4, W8, W12)</span>
       </div>
 
       <style>{`
@@ -163,6 +164,7 @@ export default function DayStrip({ days, currentDay }) {
         .day-strip__legend-item--missed::before { background: var(--cream-border); }
         .day-strip__legend-item--today::before  { background: transparent; border: 2px solid var(--forest); }
         .day-strip__legend-item--future::before { background: var(--cream-dark); border: 1px dashed var(--cream-border); }
+        .day-strip__legend-item--milestone::before { background: var(--gold); border-radius: 1px; width: 3px; height: 10px; }
       `}</style>
     </div>
   );

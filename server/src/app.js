@@ -17,22 +17,37 @@ const app = express();
 // Security headers
 app.use(helmet());
 
-// CORS — only allow the configured frontend origin
-const allowedOrigins = [
-  process.env.CLIENT_ORIGIN || 'http://localhost:5173',
-  'http://localhost:5173',
-  'http://localhost:3000',
-];
+// CORS — allow localhost on any port in development, and configured origin in production
+const isDev = (process.env.NODE_ENV || 'development') !== 'production';
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow no-origin requests (mobile apps, curl) in development
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('CORS: Origin not allowed'));
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // In development, allow any localhost or 127.0.0.1 port (5173, 5174, etc.)
+      if (isDev) {
+        if (
+          /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+          /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)
+        ) {
+          return callback(null, true);
+        }
       }
+
+      const allowedOrigins = [
+        process.env.CLIENT_ORIGIN,
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:3000',
+      ].filter(Boolean);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(null, false);
     },
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

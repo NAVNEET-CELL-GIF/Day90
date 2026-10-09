@@ -18,7 +18,7 @@ function getGroqClient() {
   return groqClient;
 }
 
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
 
 /**
  * Fallback texts per verdict type — app works even without Groq.
@@ -34,7 +34,7 @@ const FALLBACKS = {
     `You've been consistent — ${Math.round(data.adherence * 100)}% over ${data.weeksElapsed} weeks. Ratings haven't moved much. That's honest data, not failure. A dermatologist can look closer and help you figure out the next step.`,
 
   [VERDICTS.KEEP_GOING]: (data) =>
-    `${data.daysUsed} days in, ${Math.round(data.adherence * 100)}% consistent. ${data.trendImproving ? 'Your ratings are trending up — early signs that it's working.' : 'Keep the streak going — results at this stage are often invisible but real.'}`,
+    `${data.daysUsed} days in, ${Math.round(data.adherence * 100)}% consistent. ${data.trendImproving ? "Your ratings are trending up — early signs that it's working." : "Keep the streak going — results at this stage are often invisible but real."}`,
 
   weekly_reflection: (data) =>
     `Week ${data.weekNumber}: you rated ${data.rating}/5 and used it ${Math.round(data.adherence * 100)}% of days. ${data.rating >= 4 ? 'Good signs — keep the streak.' : 'Slow weeks are part of the process. Consistency now is the investment.'}`,
@@ -60,7 +60,7 @@ Rules:
  * Call Groq with a timeout and return text.
  * @returns {Promise<string>}
  */
-async function callGroq(prompt, systemOverride = null) {
+async function callGroq(prompt, systemOverride = null, maxTokens = 160) {
   const client = getGroqClient();
   if (!client) {
     throw new Error('Groq client not initialized (no API key)');
@@ -77,8 +77,8 @@ async function callGroq(prompt, systemOverride = null) {
           { role: 'system', content: systemOverride || SYSTEM_PROMPT },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 120,
-        temperature: 0.7,
+        max_tokens: maxTokens,
+        temperature: 0.4,
       },
       { signal: controller.signal }
     );
@@ -114,7 +114,7 @@ Current verdict: ${verdict}.
 
 Write 2-3 warm, honest sentences in the user's voice reflecting this honestly. Do not promise results.`;
 
-    const text = await callGroq(prompt);
+    const text = await callGroq(prompt, null, 140);
     if (text) {
       // Cache it
       await AiCache.create({ userId, routineId, kind: 'verdict_explanation', stateKey, text });
@@ -146,7 +146,7 @@ async function getWeeklyReflection(params) {
 
 Write 2-3 warm, encouraging sentences and one practical tip. Keep it under 60 words.`;
 
-    const text = await callGroq(prompt);
+    const text = await callGroq(prompt, null, 140);
     if (text) {
       await AiCache.create({ userId, routineId, kind: 'weekly_reflection', stateKey, text });
       return { text, fromCache: false, fromFallback: false };
@@ -160,30 +160,50 @@ Write 2-3 warm, encouraging sentences and one practical tip. Keep it under 60 wo
 }
 
 /**
- * Scoped Q&A — only routine usage questions.
+ * Scoped Q&A — trained exclusively to answer questions related to the active routine.
  */
 async function askRoutineQuestion(params) {
   const { question, category, goal, weekNumber, adherence } = params;
 
-  const systemPrompt = `${SYSTEM_PROMPT}
+  const routineCategory = category ? category.replace(/_/g, ' ') : 'wellness routine';
+  const routineGoal = goal ? goal.replace(/_/g, ' ') : 'consistency and long-term health';
+  const adhPct = Math.round((adherence || 0) * 100);
 
-You ONLY answer questions about:
-- Timing of use (when to apply, morning vs night)
-- What to do if a dose is missed
-- What to expect and when
-- How to stay consistent
+  const systemPrompt = `You are the Day 90 Routine Companion AI. You are strictly and exclusively an assistant for users following a 90-day health & wellness routine (hair, beard, skin, gummies, serums).
 
-If the question is about anything else (medical conditions, diagnosis, specific brands, unrelated topics), politely say: "That's a bit outside what I can help with — for medical questions, please consult a doctor or dermatologist."
+CURRENT USER CONTEXT:
+- Active Routine: ${routineCategory}
+- Target Goal: ${routineGoal}
+- Current Stage: Week ${weekNumber}
+- Adherence: ${adhPct}% consistent
 
-Context: The user is on a ${category.replace(/_/g, ' ')} routine (goal: ${goal.replace(/_/g, ' ')}), week ${weekNumber}, ${Math.round(adherence * 100)}% consistent.`;
+STRICT DOMAIN SCOPE & RULES:
+1. PERMITTED TOPICS ONLY:
+   - Routine application & timing (morning vs. night, after shower, frequency)
+   - What to do when a dose/day is missed (pick up next day without double-dosing)
+   - Biological expectations & timelines (initial shedding periods, dormant follicle cycles, why results take 8-12 weeks)
+   - Consistency habits, adherence tracking, staying motivated during invisible-progress phases
+   - Practical routine tips specifically for ${routineCategory}
+
+2. STRICT REFUSAL FOR UNRELATED TOPICS:
+   - If the user asks about ANYTHING outside their wellness/hair/beard routine (such as general knowledge, coding, math, history, politics, recipes, weather, pop culture, entertainment, or unrelated personal questions), you MUST politely refuse to answer.
+   - Refusal response template: "I'm designed exclusively to help with your ${routineCategory} and 90-day consistency tracker. For other questions, please consult an appropriate resource."
+
+3. SAFETY & MEDICAL BOUNDARIES:
+   - Never diagnose conditions or suggest specific prescription drugs/dosages.
+   - For alarming, painful, or medical symptoms, instruct: "For specific clinical diagnosis or adverse reactions, please consult a dermatologist or healthcare professional."
+   - Keep answers warm, concise, scientifically grounded, and strictly between 2 to 4 sentences (under 75 words).`;
 
   try {
-    const text = await callGroq(question, systemPrompt);
-    return { text: text || "I'm not sure about that one — for specific medical questions, please consult a doctor.", fromFallback: !text };
+    const text = await callGroq(question, systemPrompt, 200);
+    return {
+      text: text || "I can only help with your 90-day routine questions. Please consult a doctor for clinical queries.",
+      fromFallback: !text,
+    };
   } catch (err) {
     console.warn('[Groq] ask failed:', err.message);
     return {
-      text: "I couldn't connect right now. For medical questions, please consult a doctor or dermatologist.",
+      text: "I couldn't connect right now. For clinical questions, please consult a doctor or dermatologist.",
       fromFallback: true,
     };
   }

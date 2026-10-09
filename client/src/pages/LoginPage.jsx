@@ -22,7 +22,7 @@ function EyeIcon({ open }) {
 export default function LoginPage() {
   const navigate   = useNavigate();
   const location   = useLocation();
-  const { login }  = useAuth();
+  const { login, isDemo } = useAuth();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -79,6 +79,12 @@ export default function LoginPage() {
             Log in to see your progress.
           </p>
         </div>
+
+        {isDemo && (
+          <div className="alert alert--info" style={{ marginBottom: 'var(--space-4)' }}>
+            <span>👋 You were viewing the demo. Log in below to resume your saved 90-day tracker.</span>
+          </div>
+        )}
 
         {location.state?.expired && (
           <div className="form-error card--inset" style={{ marginBottom: 'var(--space-4)', borderColor: 'var(--error)' }} role="alert">

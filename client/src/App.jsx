@@ -31,11 +31,11 @@ function RequireAuth({ children }) {
   return children;
 }
 
-// Redirect logged-in users away from auth pages
+// Redirect logged-in users away from auth pages (allow demo users to sign up / log in)
 function RequireGuest({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isDemo } = useAuth();
   if (loading) return <LoadingScreen message="One moment..." />;
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user && !isDemo) return <Navigate to="/dashboard" replace />;
   return children;
 }
 

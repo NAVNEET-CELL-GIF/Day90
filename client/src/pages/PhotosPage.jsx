@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { routineAPI } from '../api/client';
@@ -78,7 +78,7 @@ export default function PhotosPage() {
 
   return (
     <div className="photos-page">
-      <div className="container">
+      <div className="page-content">
         {/* Header */}
         <header className="photos-header">
           <div className="row row--between" style={{ alignItems: 'flex-start' }}>
